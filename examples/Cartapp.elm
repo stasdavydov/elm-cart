@@ -3,7 +3,7 @@ import Html.Attributes exposing (..)
 import Html.App as Html
 import Html.Events exposing (onClick)
 import List exposing (length, map, isEmpty)
-import Cart
+import Cart exposing (..)
 
 
 main =
@@ -13,11 +13,9 @@ main =
 -- Model
 type alias Product = { id : Int, price : Float, title : String }
 
-{-product: Int -> String -> Float -> Product
-product id title price =
-  { id = id, title = title, price = price }
--}
+
 type alias Model = { cart: Cart.Cart Product, products : List Product}
+
 
 model : Model
 model =
@@ -32,6 +30,7 @@ model =
 -- Update
 
 type Msg = NoOp | Add Product | Inc Product | Dec Product | Remove Product
+
 
 update : Msg -> Model -> Model
 update msg model =
@@ -56,7 +55,7 @@ view model =
     [ h1 [] [ text "Products" ]
     , ul [] (map (productItem) model.products)
     , h1 [] [ text "Cart" ],
-      if length model.cart == 0
+      if isEmpty model.cart
         then (text "Empty Cart")
         else (table []
           [ thead []
@@ -70,8 +69,10 @@ view model =
           , tbody [] (List.map cartItem model.cart)
           , tfoot []
             [ tr [align "right"]
-              [ td [colspan 4] [strong [] [ text "Subtotal: "]]
-              , td [] [strong [] [text <| "$" ++ toString(Cart.subtotal (\p -> p.price) model.cart)]]
+              [ td [ colspan 4 ]
+                [ strong [] [ text "Subtotal: "]]
+              , td []
+                [ strong [] [ text <| priceFormat <| Cart.subtotal .price model.cart ] ]
               ]
             ]
           ])
@@ -79,11 +80,16 @@ view model =
     ]
 
 
+priceFormat : Float -> String
+priceFormat price =
+  "$" ++ toString price
+
+
 productItem : Product -> Html Msg
 productItem product =
   li
     []
-    [ text <| product.title ++ " -- $" ++ (toString product.price) ++ " "
+    [ text <| product.title ++ " -- " ++ (priceFormat product.price) ++ " "
     , button [ onClick <| Add product ] [ text "Add to Cart" ]
     ]
 
@@ -91,12 +97,12 @@ cartItem : Cart.Item Product -> Html Msg
 cartItem item =
   tr []
     [ td [] [ text item.product.title ]
-    , td [] [ text ("$" ++ (toString item.product.price)) ]
+    , td [] [ text <| priceFormat item.product.price ]
     , td [] [ text <| toString item.qty ]
     , td []
       [ button [ onClick <| Inc item.product ] [ text "+" ]
       , button [ onClick <| Dec item.product ] [ text "-" ]
       , button [ onClick <| Remove item.product ] [ text "x" ]
       ]
-    , td [ align "right" ] [ text <| "$" ++ (toString <| Cart.item_subtotal .price item) ]
+    , td [ align "right" ] [ text <| priceFormat <| Cart.item_subtotal .price item ]
   ]

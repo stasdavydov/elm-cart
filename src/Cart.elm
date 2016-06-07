@@ -98,7 +98,7 @@ add product cart =
 
   in
     if (isEmpty cart) || isEmpty (filter (\i -> i.product == product) cart)
-      then item product :: cart
+      then append cart [item product]
       else map addItem cart
 
 
@@ -138,7 +138,7 @@ dec product cart =
       if i.product == product then { i | qty = i.qty - 1 } else i
 
   in
-    map decItem (filter isLastItem cart)
+    map decItem <| filter isLastItem cart
 
 
 {-| Remove the product from the cart.
@@ -163,4 +163,4 @@ remove product cart =
 -}
 subtotal : (a -> Float) -> Cart a -> Float
 subtotal price_f cart =
-  sum (map (item_subtotal price_f) cart)
+  sum <| map (item_subtotal price_f) cart
