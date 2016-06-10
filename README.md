@@ -7,14 +7,14 @@ Elm lang shopping Cart implementation. Provide a way to add/remove product from 
   type alias Product = { id : Int, price : Float, title : String }
   apple = Product 1 10.0 "Apple"
 
-  add apple cart ==
-    [{ product = { id = 1, price = 10.0, title = "Apple" }, qty = 1}]
-  add apple (add apple cart) ==
-    [{ product = { id = 1, price = 10.0, title = "Apple" }, qty = 2}]
+  add apple cart 12345 ==
+    [{ product = { id = 1, price = 10.0, title = "Apple" }, qty = 1, date_added = 12345 }]
+  inc apple (add apple cart 12345 ) ==
+    [{ product = { id = 1, price = 10.0, title = "Apple" }, qty = 2, date_added = 12345 }]
 
 
-  subtotal (add apple cart) == 10.0
-  subtotal (add apple (add apple cart)) == 20.0
+  subtotal (add apple cart 12345) == 10.0
+  subtotal (inc apple (add apple cart 12345)) == 20.0
 
 ```
 
