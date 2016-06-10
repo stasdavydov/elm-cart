@@ -2,7 +2,7 @@ module Cart exposing
   ( Item, Cart
   , qty, cart
   , add, inc, dec, remove
-  , item_subtotal, subtotal
+  , itemSubtotal, subtotal
   )
 
 {-| A tiny library for shopping carts. It supports any Product types to add into a cart.
@@ -15,12 +15,14 @@ The ```price``` function is required for cart and item subtotal calculation.
 @docs cart, add, inc, dec, remove, subtotal, qty
 
 # Cart Item operations
-@docs item_subtotal
+@docs itemSubtotal
 
 -}
 
 
 import List exposing (isEmpty, map, foldl, filter, append, sum)
+import Time exposing (Time)
+import Date exposing (Date)
 
 
 {-| Item record is a counter of added products into the cart.
@@ -31,6 +33,7 @@ import List exposing (isEmpty, map, foldl, filter, append, sum)
 type alias Item a =
   { product : a
   , qty : Int
+  , date_added : Date
   }
 
 
@@ -60,70 +63,57 @@ qty cart =
   foldl (+) 0 (map .qty cart)
 
 
-{-| Make an item for the product with qty == 1.
-
-    type alias Product = { id : Int, price : Float }
-
-    item <| Product 1 10.0 ==
-      { product = { id = 1, price = 10.0 }, qty = 1 }
--}
-item : a -> Item a
-item product =
-  Item product 1
-
-
 {-| Get the item subtotal with the given price function required for getting price of the product.
 
     type alias Product = { id : Int, price : Float }
 
-    item_subtotal .price (item <| Product 1 10.0) == 10.0
+    itemSubtotal .price (item <| Product 1 10.0) == 10.0
 -}
-item_subtotal : (a -> Float) -> Item a -> Float
-item_subtotal price item =
-  price item.product * toFloat item.qty
+itemSubtotal : (a -> Float) -> Item a -> Float
+itemSubtotal price_f item =
+  price_f item.product * toFloat item.qty
 
 
-{-| Add the product to the cart.
+{-| Add the product to the cart. Time of adding is specified as a parameter.
 
     type alias Product = { id : Int, price : Float }
 
-    add (Product 1 10.0) cart ==
-      [{ product = { id = 1, price = 10.0 }, qty = 1 }]
+    add (Product 1 10.0) cart 12345 ==
+      [{ product = { id = 1, price = 10.0 }, qty = 1, date_added = 12345 }]
 -}
-add : a -> Cart a -> Cart a
-add product cart =
-  let
-    addItem i =
-      if i.product == product then { i | qty = i.qty + 1 } else i
-
-  in
+add : a -> Cart a -> Time -> Cart a
+add product cart time =
     if (isEmpty cart) || isEmpty (filter (\i -> i.product == product) cart)
-      then append cart [item product]
-      else map addItem cart
+      then append cart [Item product 1 (Date.fromTime time) ]
+      else inc product cart
 
 
-{-| Increase quantity of the product in the cart. An alias of 'add' function.
+{-| Increase quantity of the product in the cart.
 
     type alias Product = { id : Int, price : Float }
     p = Product 1 10.0
 
-    c = add p cart
-    c == [{ product = { id = 1, price = 10.0 }, qty = 1 }]
+    c = add p cart 12345
+    c == [{ product = { id = 1, price = 10.0 }, qty = 1, date_added = 12345 }]
 
-    inc p c == [{ product = { id = 1, price = 10.0 }, qty = 2 }]
+    inc p c == [{ product = { id = 1, price = 10.0 }, qty = 2, date_added = 12345 }]
 -}
 inc : a -> Cart a -> Cart a
 inc product cart =
-  add product cart
+  let
+    updateQty i =
+      if i.product == product then { i | qty = i.qty + 1 } else i
+  in
+    map updateQty cart
 
 
 {-| Decrease quantity of the product in the cart.
 
     type alias Product = { id : Int, price : Float }
     p = Product 1 10.0
-    c = add p (add p cart)
+    c = inc p (add p cart 12345)
 
-    c == [{ product = { id = 1, price = 10.0 }, qty = 2 }]
+    c == [{ product = { id = 1, price = 10.0 }, qty = 2, date_added = 12345 }]
 
     dec p c == [{ product = { id = 1, price = 10.0 }, qty = 1 }]
     dec p (dec p c) == []
@@ -145,8 +135,8 @@ dec product cart =
 
     type alias Product = { id : Int, price : Float }
     p = Product 1 10.0
-    c = add p cart
-    c == [{ product = { id = 1, price = 10.0 }, qty = 1 }]
+    c = add p cart 12345
+    c == [{ product = { id = 1, price = 10.0 }, qty = 1, date_added = 12345 }]
     remove p c == []
 -}
 remove : a -> Cart a -> Cart a
@@ -158,9 +148,9 @@ remove product cart =
 
     type alias Product = { id : Int, price : Float }
     p = Product 1 10.0
-    subtotal .price (add p (add p cart)) == 20.0
+    subtotal .price (inc p (add p cart 12345)) == 20.0
 
 -}
 subtotal : (a -> Float) -> Cart a -> Float
 subtotal price_f cart =
-  sum <| map (item_subtotal price_f) cart
+  sum <| map (itemSubtotal price_f) cart

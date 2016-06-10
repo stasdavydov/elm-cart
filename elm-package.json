@@ -1,5 +1,5 @@
 {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "summary": "Elm lang shopping Cart",
     "repository": "https://github.com/stasdavydov/elm-cart.git",
     "license": "",
@@ -7,12 +7,12 @@
         "src"
     ],
     "exposed-modules": [
-      "Cart"
+        "Cart"
     ],
-    "native-modules": false,
     "dependencies": {
         "elm-lang/core": "4.0.1 <= v < 5.0.0",
-        "elm-lang/html": "1.0.0 <= v < 2.0.0"
+        "elm-lang/html": "1.0.0 <= v < 2.0.0",
+        "mgold/elm-date-format": "1.1.4 <= v < 2.0.0"
     },
     "elm-version": "0.17.0 <= v < 0.18.0"
 }
