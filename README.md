@@ -1,5 +1,7 @@
 # elm-cart
-Elm lang shopping Cart implementation. Provide a way to add/remove product from cart, increment and decrement quantity of product in a cart. Also calculate total quantity and cart subtotal.
+Elm lang shopping Cart implementation. Provide a way to add/remove product to/from cart, increment and decrement quantity of product in a cart. Also calculate total quantity and cart subtotal. Cart item stores datetime when the product was added to a cart. This date should be passed to ```add``` function as present in the example below.
+
+Please look into examples/Cartapp.elm for the reference.
 
 ```elm
   import Cart exposing (..)
@@ -13,8 +15,8 @@ Elm lang shopping Cart implementation. Provide a way to add/remove product from 
     [{ product = { id = 1, price = 10.0, title = "Apple" }, qty = 2, date_added = 12345 }]
 
 
-  subtotal (add apple cart 12345) == 10.0
-  subtotal (inc apple (add apple cart 12345)) == 20.0
+  subtotal .price (add apple cart 12345) == 10.0
+  subtotal .price (inc apple (add apple cart 12345)) == 20.0
 
 ```
 
