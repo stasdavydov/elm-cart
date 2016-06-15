@@ -21,3 +21,4 @@ Please look into examples/Cartapp.elm for the reference.
 ```
 
 
+You can also find Cart examples in tests/CartTests.elm file.
