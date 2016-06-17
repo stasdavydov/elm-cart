@@ -1,7 +1,7 @@
 module Cart exposing
   ( Item, Cart
   , qty, cart
-  , add, inc, dec, remove
+  , add, inc, dec, remove, changeQty
   , itemSubtotal, subtotal
   )
 
@@ -11,8 +11,11 @@ The ```price``` function is required for cart and item subtotal calculation.
 # Types
 @docs Item, Cart
 
+# Modifying Cart contents
+@docs add, inc, dec, remove, changeQty
+
 # Cart operations
-@docs cart, add, inc, dec, remove, subtotal, qty
+@docs cart, subtotal, qty
 
 # Cart Item operations
 @docs itemSubtotal
@@ -23,6 +26,7 @@ The ```price``` function is required for cart and item subtotal calculation.
 import List exposing (isEmpty, map, foldl, filter, append, sum)
 import Time exposing (Time)
 import Date exposing (Date)
+import Result exposing (Result)
 
 
 {-| Item record is a counter of added products into the cart.
@@ -129,6 +133,29 @@ dec product cart =
 
   in
     map decItem <| filter isLastItem cart
+
+{-| Change the product quantity in the cart. Returns new Cart Ok result or Err.
+
+    type alias Product = { id : Int, price : Float }
+    p = Product 1 10.0
+    c = inc p (add p cart 12345)
+
+    changeQty p 10 cart == Ok [{ product = { id = 1, price = 10.0 }, qty = 10, date_added = 12345 }]
+    changeQty p 0 cart == Ok []
+    changeQty p -1 cart == Error "Wrong negative quantuty used"
+-}
+changeQty : a -> Int -> Cart a -> Result String (Cart a)
+changeQty product qty cart =
+  if qty == 0 then
+    Ok (remove product cart)
+  else if qty > 0 then
+    let
+      updateQty i =
+        if i.product == product then { i | qty = qty } else i
+    in
+      Result.Ok (map updateQty cart)
+  else
+    Result.Err "Wrong negative quantuty used"
 
 
 {-| Remove the product from the cart.

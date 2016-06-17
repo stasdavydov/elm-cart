@@ -4,6 +4,7 @@ import ElmTest exposing (..)
 import Cart exposing (..)
 import List exposing (..)
 import Date exposing (Date)
+import Result exposing (Result)
 
 
 type alias Product = { id : Int, price : Float, title : String }
@@ -118,6 +119,35 @@ testRemove =
     ]
 
 
+testChangeQty : List Test
+testChangeQty =
+  let
+    data = setUp
+    res1 = changeQty data.productA 5 (add data.productA data.cart 12345.0)
+    res2 = changeQty data.productA 0 (add data.productA data.cart 12345.0)
+    res3 = changeQty data.productA -10 (add data.productA data.cart 12345.0)
+  in
+    [ test "Check change qty 5" <|
+        ( case res1 of
+            Result.Ok cart ->
+              assertEqual 5 (qty cart)
+            Result.Err msg ->
+              fail "Wrong result" )
+    , test "Check qty 0" <|
+        ( case res2 of
+            Result.Ok cart ->
+              assertEqual 0 (qty cart)
+            Result.Err msg ->
+              fail "Wrong result" )
+    , test "Check qty -10" <|
+        ( case res3 of
+            Result.Ok cart ->
+              fail "Wrong result"
+            Result.Err msg ->
+              pass )
+    ]
+
+
 tests : Test
 tests =
     suite "A Cart Test Suite" (concat
@@ -126,6 +156,7 @@ tests =
       , testInc
       , testDec
       , testRemove
+      , testChangeQty
       ])
 
 

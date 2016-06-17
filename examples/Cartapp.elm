@@ -1,12 +1,14 @@
 import Html.App as App
-import Html exposing (Html, button, div, text, h1, section, li, ul, table, thead, tbody, tr, th, td, tfoot, strong)
+import Html exposing (Html, button, div, text, h1, section, li, ul, table, thead, tbody, tr, th, td, tfoot, strong, input)
 import Html.Attributes exposing (..)
 import Html.App as Html
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import List exposing (length, map, isEmpty)
 import Cart exposing (..)
 import Time exposing (..)
 import Date.Format exposing (format)
+import Result exposing (Result)
+import String exposing (toInt)
 
 
 main =
@@ -46,7 +48,7 @@ model =
 
 -- Update
 
-type Msg = NoOp | Add Product | Inc Product | Dec Product | Remove Product | Tick Time
+type Msg = NoOp | Add Product | Inc Product | Dec Product | Remove Product | Tick Time | ChangeQty Product String
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -66,6 +68,20 @@ update msg model =
 
     Remove p ->
       ({ model | cart = Cart.remove p model.cart }, Cmd.none)
+
+    ChangeQty p s -> (
+      case toInt s of
+        Ok qty ->
+          case Cart.changeQty p qty model.cart of
+            Ok cart ->
+              ({ model | cart = cart }, Cmd.none)
+
+            Err msg ->
+              (model, Cmd.none)
+
+        Err msg ->
+          (model, Cmd.none)
+      )
 
     Tick time ->
       ({ model | timer = time }, Cmd.none)
@@ -132,7 +148,7 @@ cartItem item =
     [ td [] [ text item.product.title ]
     , td [] [ text <| format "%e %b, %Y %H:%M" item.date_added ]
     , td [] [ text <| priceFormat item.product.price ]
-    , td [] [ text <| toString item.qty ]
+    , td [] [ input [type' "number", placeholder "Qty", onInput (ChangeQty item.product), value (toString item.qty)] [] ]
     , td []
       [ button [ onClick <| Inc item.product ] [ text "+" ]
       , button [ onClick <| Dec item.product ] [ text "-" ]
